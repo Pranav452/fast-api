@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-ticket-alt text-blue-600"></i>
+                Ticket Booking System
+            </h1>
+            <p class="text-gray-600">Manage events, venues, and ticket bookings with relationships</p>
+        </div>
+
+        <!-- Statistics Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Revenue</p>
+                        <p class="text-3xl font-bold text-green-600">${{ "%.2f"|format(stats.total_revenue) }}</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <i class="fas fa-dollar-sign text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Bookings</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ stats.total_bookings }}</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <i class="fas fa-calendar-check text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Events</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ stats.total_events }}</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                        <i class="fas fa-calendar-alt text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Venues</p>
+                        <p class="text-3xl font-bold text-orange-600">{{ stats.total_venues }}</p>
+                    </div>
+                    <div class="bg-orange-100 rounded-full p-3">
+                        <i class="fas fa-building text-orange-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Status Overview -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-pie text-blue-600"></i>
+                Booking Status Overview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-yellow-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-yellow-800">Pending</span>
+                        <span class="text-lg font-bold text-yellow-900">{{ stats.pending_bookings }}</span>
+                    </div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-green-800">Confirmed</span>
+                        <span class="text-lg font-bold text-green-900">{{ stats.confirmed_bookings }}</span>
+                    </div>
+                </div>
+                <div class="bg-red-50 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-red-800">Cancelled</span>
+                        <span class="text-lg font-bold text-red-900">{{ stats.cancelled_bookings }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="flex border-b">
+                <button onclick="showSection('events')" class="tab-button px-6 py-3 font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600" id="events-tab">
+                    <i class="fas fa-calendar-alt mr-2"></i>Events
+                </button>
+                <button onclick="showSection('venues')" class="tab-button px-6 py-3 font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600" id="venues-tab">
+                    <i class="fas fa-building mr-2"></i>Venues
+                </button>
+                <button onclick="showSection('ticket-types')" class="tab-button px-6 py-3 font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600" id="ticket-types-tab">
+                    <i class="fas fa-tags mr-2"></i>Ticket Types
+                </button>
+                <button onclick="showSection('bookings')" class="tab-button px-6 py-3 font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600 active" id="bookings-tab">
+                    <i class="fas fa-ticket-alt mr-2"></i>Bookings
+                </button>
+                <button onclick="showSection('search')" class="tab-button px-6 py-3 font-medium text-gray-700 hover:text-blue-600 border-b-2 border-transparent hover:border-blue-600" id="search-tab">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Events Section -->
+        <div id="events-section" class="section hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-plus text-green-600"></i>
+                    Add New Event
+                </h2>
+                <form action="/events" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
+                        <input type="text" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" name="description" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date & Time</label>
+                        <input type="datetime-local" name="date" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Venue</label>
+                        <select name="venue_id" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Venue</option>
+                            {% for venue in venues %}
+                            <option value="{{ venue.id }}">{{ venue.name }} ({{ venue.capacity }} capacity)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                            <i class="fas fa-plus"></i> Add Event
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">All Events</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for event in events %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ event.description }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ event.date.strftime('%Y-%m-%d %H:%M') }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% for venue in venues %}
+                                        {% if venue.id == event.venue_id %}
+                                            {{ venue.name }}<br>
+                                            <span class="text-gray-500">{{ venue.location }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% set event_bookings = bookings | selectattr('event_id', 'equalto', event.id) | list %}
+                                    {{ event_bookings | length }} bookings
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="getEventRevenue({{ event.id }})"
+                                            class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-chart-line"></i> Revenue
+                                    </button>
+                                    <button onclick="getAvailableTickets({{ event.id }})"
+                                            class="text-green-600 hover:text-green-900">
+                                        <i class="fas fa-ticket-alt"></i> Available
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venues Section -->
+        <div id="venues-section" class="section hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-plus text-green-600"></i>
+                    Add New Venue
+                </h2>
+                <form action="/venues" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
+                        <input type="text" name="name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input type="text" name="location" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
+                        <input type="number" name="capacity" min="1" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                            <i class="fas fa-plus"></i> Add Venue
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">All Venues</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venue</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Events</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for venue in venues %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ venue.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ venue.location }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ venue.capacity }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% set venue_events = events | selectattr('venue_id', 'equalto', venue.id) | list %}
+                                    {{ venue_events | length }} events
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="getVenueOccupancy({{ venue.id }})"
+                                            class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-chart-pie"></i> Occupancy
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Types Section -->
+        <div id="ticket-types-section" class="section hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-plus text-green-600"></i>
+                    Add New Ticket Type
+                </h2>
+                <form action="/ticket-types" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ticket Type</label>
+                        <select name="name" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Type</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Economy">Economy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
+                        <input type="number" name="price" step="0.01" min="0.01" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" name="description" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                            <i class="fas fa-plus"></i> Add Ticket Type
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">All Ticket Types</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for ticket_type in ticket_types %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                               {% if ticket_type.name.value == 'VIP' %}bg-purple-100 text-purple-800
+                                               {% elif ticket_type.name.value == 'Standard' %}bg-blue-100 text-blue-800
+                                               {% else %}bg-green-100 text-green-800{% endif %}">
+                                        {{ ticket_type.name.value }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    ${{ "%.2f"|format(ticket_type.price) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ ticket_type.description }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% set type_bookings = bookings | selectattr('ticket_type_id', 'equalto', ticket_type.id) | list %}
+                                    {{ type_bookings | length }} bookings
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Section -->
+        <div id="bookings-section" class="section">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-plus text-green-600"></i>
+                    Create New Booking
+                </h2>
+                <form action="/bookings" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Event</label>
+                        <select name="event_id" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Event</option>
+                            {% for event in events %}
+                            <option value="{{ event.id }}">{{ event.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ticket Type</label>
+                        <select name="ticket_type_id" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Type</option>
+                            {% for ticket_type in ticket_types %}
+                            <option value="{{ ticket_type.id }}">{{ ticket_type.name.value }} - ${{ "%.2f"|format(ticket_type.price) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                        <input type="text" name="customer_name" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
+                        <input type="email" name="customer_email" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                        <input type="number" name="quantity" min="1" max="10" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors">
+                            <i class="fas fa-plus"></i> Book Tickets
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">All Bookings</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Booking ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for booking in bookings %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ booking.confirmation_code }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.booking_date.strftime('%Y-%m-%d') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ booking.customer_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ booking.customer_email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% for event in events %}
+                                        {% if event.id == booking.event_id %}
+                                            {{ event.name }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {% for ticket_type in ticket_types %}
+                                        {% if ticket_type.id == booking.ticket_type_id %}
+                                            {{ ticket_type.name.value }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ booking.quantity }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    ${{ "%.2f"|format(booking.total_amount) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                               {% if booking.status.value == 'confirmed' %}bg-green-100 text-green-800
+                                               {% elif booking.status.value == 'pending' %}bg-yellow-100 text-yellow-800
+                                               {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ booking.status.value.title() }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="updateBookingStatus({{ booking.id }}, 'confirmed')"
+                                            class="text-green-600 hover:text-green-900 mr-2">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button onclick="updateBookingStatus({{ booking.id }}, 'cancelled')"
+                                            class="text-red-600 hover:text-red-900">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div id="search-section" class="section hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-search text-blue-600"></i>
+                    Search Bookings
+                </h2>
+                <form onsubmit="searchBookings(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
+                        <input type="text" id="search-event" placeholder="Enter event name"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
+                        <input type="text" id="search-venue" placeholder="Enter venue name"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ticket Type</label>
+                        <select id="search-ticket-type"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Types</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Economy">Economy</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">Search Results</h2>
+                </div>
+                <div class="p-6">
+                    <div id="search-results" class="text-gray-500">
+                        Enter search criteria above to find bookings.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for displaying information -->
+    <div id="infoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+            <h2 id="modal-title" class="text-xl font-bold mb-4"></h2>
+            <div id="modal-content"></div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeModal()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.remove('hidden');
+            
+            // Update tab buttons
+            const tabs = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => {
+                tab.classList.remove('active', 'border-blue-600', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-700');
+            });
+            
+            document.getElementById(sectionName + '-tab').classList.add('active', 'border-blue-600', 'text-blue-600');
+            document.getElementById(sectionName + '-tab').classList.remove('border-transparent', 'text-gray-700');
+        }
+
+        // Initialize with bookings section
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('bookings');
+        });
+
+        // Search functionality
+        async function searchBookings(event) {
+            event.preventDefault();
+            
+            const eventName = document.getElementById('search-event').value;
+            const venueName = document.getElementById('search-venue').value;
+            const ticketType = document.getElementById('search-ticket-type').value;
+            
+            const params = new URLSearchParams();
+            if (eventName) params.append('event', eventName);
+            if (venueName) params.append('venue', venueName);
+            if (ticketType) params.append('ticket_type', ticketType);
+            
+            try {
+                const response = await fetch(`/bookings/search?${params}`);
+                const bookings = await response.json();
+                
+                displaySearchResults(bookings);
+            } catch (error) {
+                console.error('Error searching bookings:', error);
+                document.getElementById('search-results').innerHTML = '<p class="text-red-500">Error searching bookings.</p>';
+            }
+        }
+
+        function displaySearchResults(bookings) {
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (bookings.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-gray-500">No bookings found matching your criteria.</p>';
+                return;
+            }
+            
+            let html = '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">';
+            html += '<thead class="bg-gray-50"><tr>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Type</th>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>';
+            html += '<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>';
+            html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+            
+            bookings.forEach(booking => {
+                html += '<tr class="hover:bg-gray-50">';
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${booking.customer_name}</td>`;
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Event ${booking.event_id}</td>`;
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Type ${booking.ticket_type_id}</td>`;
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${booking.quantity}</td>`;
+                html += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${booking.total_amount.toFixed(2)}</td>`;
+                html += `<td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${booking.status === 'confirmed' ? 'green' : booking.status === 'pending' ? 'yellow' : 'red'}-100 text-${booking.status === 'confirmed' ? 'green' : booking.status === 'pending' ? 'yellow' : 'red'}-800">${booking.status}</span></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // Update booking status
+        async function updateBookingStatus(bookingId, status) {
+            try {
+                const response = await fetch(`/bookings/${bookingId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: status })
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error updating booking status');
+                }
+            } catch (error) {
+                console.error('Error updating booking status:', error);
+                alert('Error updating booking status');
+            }
+        }
+
+        // Get event revenue
+        async function getEventRevenue(eventId) {
+            try {
+                const response = await fetch(`/events/${eventId}/revenue`);
+                const revenue = await response.json();
+                
+                showModal('Event Revenue', `
+                    <div class="space-y-2">
+                        <p><strong>Event:</strong> ${revenue.event_name}</p>
+                        <p><strong>Total Revenue:</strong> $${revenue.total_revenue.toFixed(2)}</p>
+                        <p><strong>Total Bookings:</strong> ${revenue.total_bookings}</p>
+                        <p><strong>Confirmed Bookings:</strong> ${revenue.confirmed_bookings}</p>
+                    </div>
+                `);
+            } catch (error) {
+                console.error('Error getting event revenue:', error);
+                alert('Error getting event revenue');
+            }
+        }
+
+        // Get available tickets
+        async function getAvailableTickets(eventId) {
+            try {
+                const response = await fetch(`/events/${eventId}/available-tickets`);
+                const tickets = await response.json();
+                
+                showModal('Available Tickets', `
+                    <div class="space-y-2">
+                        <p><strong>Event:</strong> ${tickets.event_name}</p>
+                        <p><strong>Venue Capacity:</strong> ${tickets.venue_capacity}</p>
+                        <p><strong>Total Booked:</strong> ${tickets.total_booked}</p>
+                        <p><strong>Available Tickets:</strong> ${tickets.available_tickets}</p>
+                    </div>
+                `);
+            } catch (error) {
+                console.error('Error getting available tickets:', error);
+                alert('Error getting available tickets');
+            }
+        }
+
+        // Get venue occupancy
+        async function getVenueOccupancy(venueId) {
+            try {
+                const response = await fetch(`/venues/${venueId}/occupancy`);
+                const occupancy = await response.json();
+                
+                showModal('Venue Occupancy', `
+                    <div class="space-y-2">
+                        <p><strong>Venue:</strong> ${occupancy.venue_name}</p>
+                        <p><strong>Capacity:</strong> ${occupancy.capacity}</p>
+                        <p><strong>Total Bookings:</strong> ${occupancy.total_bookings}</p>
+                        <p><strong>Occupancy Rate:</strong> ${occupancy.occupancy_rate.toFixed(2)}%</p>
+                    </div>
+                `);
+            } catch (error) {
+                console.error('Error getting venue occupancy:', error);
+                alert('Error getting venue occupancy');
+            }
+        }
+
+        // Modal functions
+        function showModal(title, content) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html> 
